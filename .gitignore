@@ -1,1 +1,11 @@
 crime_data.db
+ShapeData/LSOA_2021_EW_BSC_V4.cpg
+ShapeData/LSOA_2021_EW_BSC_V4.dbf
+ShapeData/LSOA_2021_EW_BSC_V4.prj
+ShapeData/LSOA_2021_EW_BSC_V4.shp
+ShapeData/LSOA_2021_EW_BSC_V4.shp.xml
+ShapeData/LSOA_2021_EW_BSC_V4.shx
+models/count_classifier.pkl
+models/feature_columns.pkl
+models/hybrid_classifier.pkl
+models/six_plus_regressor.pkl
