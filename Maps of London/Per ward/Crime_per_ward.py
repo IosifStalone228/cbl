@@ -3,6 +3,7 @@
 #(import sqlite3 (in powershell, in case of import error))
 #cd C:\Users\20234289\Documents\GitHub\cbl (directory)
 #python Crime_per_ward.py (to run in terminal)
+#test
 
 import os
 import sqlite3
