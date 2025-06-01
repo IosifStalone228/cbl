@@ -1,26 +1,34 @@
 import dash
 from dash import html, dcc, Output, Input, State
+import os
 import sqlite3
 import pandas as pd
+from datetime import datetime, timezone
 import folium
 from folium.plugins import MarkerCluster
 import fiona
 from shapely.geometry import shape, Point
 from pyproj import Transformer
 from rtree import index
-import os
-from datetime import datetime
+import dash.exceptions
 
 # Paths
-shapefile_path = "LSOA_and_Ward_files/London-wards-2018/London-wards-2018_ESRI/London_Ward_CityMerged.shp"
 db_path = "crime_data.db"
-output_map_path = os.path.join("assets", "interactive_crime_map.html")
-os.makedirs("assets", exist_ok=True)
+shapefile_path = "LSOA_and_Ward_files/London-wards-2018/London-wards-2018_ESRI/London_Ward_CityMerged.shp"
+assets_folder = "assets"
+default_map_path = os.path.join(assets_folder, "default_map.html")
+map_output_path = os.path.join(assets_folder, "temp_crime_map.html")
 
-# Coordinate transformation: British National Grid → WGS84
+# Ensure assets folder exists
+os.makedirs(assets_folder, exist_ok=True)
+
+# Clean up assets folder on startup except for default_map.html
+for file in os.listdir(assets_folder):
+    if file != "default_map.html":
+        os.remove(os.path.join(assets_folder, file))
+
 transformer = Transformer.from_crs("EPSG:27700", "EPSG:4326", always_xy=True)
 
-# Reproject shapefile geometries to WGS84
 def reproject_geometry(geom_dict):
     if geom_dict["type"] == "Polygon":
         return {
@@ -41,16 +49,15 @@ def reproject_geometry(geom_dict):
     else:
         raise ValueError("Unsupported geometry type.")
 
-# Load available months from DB (sorted)
 def get_available_months():
+    if not os.path.exists(db_path):
+        return []
     conn = sqlite3.connect(db_path)
     df = pd.read_sql_query("SELECT DISTINCT Month FROM crime ORDER BY Month", conn)
     conn.close()
     return df["Month"].tolist()
 
-# Map generation
-def generate_map(start_month, end_month):
-    # Load crime data for range
+def generate_map(start_month, end_month, output_path):
     conn = sqlite3.connect(db_path)
     df = pd.read_sql_query(
         """
@@ -64,7 +71,6 @@ def generate_map(start_month, end_month):
     )
     conn.close()
 
-    # Load and reproject ward geometries
     wards = []
     spatial_index = index.Index()
     with fiona.open(shapefile_path) as shp:
@@ -74,7 +80,6 @@ def generate_map(start_month, end_month):
             wards.append((ward_code, geom))
             spatial_index.insert(i, geom.bounds)
 
-    # Crime counts per ward
     ward_crime_counts = {code: 0 for code, _ in wards}
     crime_points = []
 
@@ -89,7 +94,6 @@ def generate_map(start_month, end_month):
 
     m = folium.Map(location=[51.5074, -0.1278], zoom_start=10, tiles="CartoDB positron")
 
-    # Add ward outlines
     for ward_code, geom in wards:
         count = ward_crime_counts[ward_code]
         folium.GeoJson(
@@ -103,7 +107,6 @@ def generate_map(start_month, end_month):
             }
         ).add_to(m)
 
-    # Add clustered crime markers
     cluster = MarkerCluster().add_to(m)
     for lat, lon, crime_type, outcome in crime_points:
         folium.CircleMarker(
@@ -115,13 +118,20 @@ def generate_map(start_month, end_month):
             tooltip=f"{crime_type} ({outcome})"
         ).add_to(cluster)
 
-    m.save(output_map_path)
-    print("Map saved for range:", start_month, "to", end_month)
+    m.save(output_path)
+    print(f"[INFO] Generated map for period: {start_month} to {end_month}")
 
-# Initialize Dash
-available_months = get_available_months()
-generate_map(available_months[0], available_months[0])
+def load_special_ops_text():
+    try:
+        with open("special_ops.txt", "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        return f"Could not load special_ops.txt: {e}"
+
+# Dash app
 app = dash.Dash(__name__)
+
+available_months = get_available_months()
 month_to_index = {m: i for i, m in enumerate(available_months)}
 index_to_month = {i: m for i, m in enumerate(available_months)}
 
@@ -130,8 +140,8 @@ app.layout = html.Div([
     dcc.RangeSlider(
         id="month-slider",
         min=0,
-        max=len(available_months) - 1,
-        value=[0, len(available_months) - 1],
+        max=len(available_months) - 1 if available_months else 0,
+        value=[0, len(available_months) - 1] if available_months else [0, 0],
         marks={i: m for i, m in enumerate(available_months)},
         step=None,
         allowCross=False,
@@ -145,88 +155,135 @@ app.layout = html.Div([
         multiple=False,
     ),
     html.Div(id='upload-status', style={'marginTop': '10px', 'color': 'green'}),
-    html.Div([
-        dcc.Loading(
-            id="loading-spinner",
-            type="circle",
-            children=[
-                html.Div(id="loading-output"),
-                html.Iframe(
-                    id="crime-map",
-                    src="/assets/interactive_crime_map.html",
-                    style={"height": "700px", "width": "100%", "border": "none"},
-                )
-            ]
-        )
-    ])
+    html.Button("Special Operation description", id="toggle-description", n_clicks=0, style={"marginTop": "20px"}),
+    html.Div(id="special-description", style={"marginTop": "10px", "whiteSpace": "pre-wrap", "display": "none"}),
+    html.Div(id="map-time-period", style={"marginTop": "20px", "fontWeight": "bold"}),
+    dcc.Loading(
+        id="loading-spinner",
+        type="circle",
+        children=[
+            html.Div(id="loading-output"),
+            html.Iframe(
+                id="crime-map",
+                src="/assets/default_map.html",
+                style={"height": "700px", "width": "100%", "border": "none"},
+            )
+        ]
+    )
 ])
 
 @app.callback(
-    Output("crime-map", "src"),
-    Output("loading-output", "children"),
-    Input("submit-button", "n_clicks"),
-    State("month-slider", "value")
-)
-def update_map(n_clicks, slider_range):
-    if n_clicks == 0:
-        raise dash.exceptions.PreventUpdate
-
-    start_month = index_to_month[slider_range[0]]
-    end_month = index_to_month[slider_range[1]]
-    generate_map(start_month, end_month)
-    timestamp = datetime.utcnow().timestamp()
-    return f"/assets/interactive_crime_map.html?ts={timestamp}", ""
-@app.callback(
     Output('upload-status', 'children'),
-    Output('month-slider', 'max'),
     Output('month-slider', 'marks'),
+    Output('month-slider', 'min'),
+    Output('month-slider', 'max'),
     Output('month-slider', 'value'),
+    Output('crime-map', 'src'),
+    Output('map-time-period', 'children'),
+    Output('loading-output', 'children'),
     Input('upload-db', 'contents'),
-    State('upload-db', 'filename')
+    State('upload-db', 'filename'),
+    Input('submit-button', 'n_clicks'),
+    State('month-slider', 'value')
 )
-def handle_upload(contents, filename):
-    if contents is None:
-        raise dash.exceptions.PreventUpdate
-
-    import base64
-    # Check if contents contain a comma
-    print("Uploaded contents preview:", contents[:100])  # print first 100 chars or less
-    if ',' not in contents:
-        return "Upload failed: Invalid file contents.", dash.no_update, dash.no_update, dash.no_update
-
-    
-    # Decode uploaded file and save to disk
-    content_type, content_string = contents.split(',', 1)
-
-    try:
-        decoded = base64.b64decode(content_string)
-    except Exception as e:
-        return f"Upload failed: Decoding error: {str(e)}", dash.no_update, dash.no_update, dash.no_update
-
-    with open(db_path, 'wb') as f:
-        f.write(decoded)
-
-    # Regenerate available months
-    months = get_available_months()
-    if not months:
-        return "Upload failed: No valid data in file.", dash.no_update, dash.no_update, dash.no_update
+def handle_all(upload_contents, upload_filename, submit_n_clicks, slider_range):
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
 
     global available_months, month_to_index, index_to_month
-    available_months = months
-    month_to_index = {m: i for i, m in enumerate(available_months)}
-    index_to_month = {i: m for i, m in enumerate(available_months)}
 
-    generate_map(available_months[0], available_months[0])
+    # Defaults
+    upload_msg = ""
+    loading_msg = ""
+    marks = {i: m for i, m in enumerate(available_months)} if available_months else {}
+    min_val = 0
+    max_val = len(available_months) - 1 if available_months else 0
 
-    return (
-        f"Uploaded '{filename}' successfully.",
-        len(available_months) - 1,
-        {i: m for i, m in enumerate(available_months)},
-        [0, len(available_months) - 1],
-    )
+    if trigger_id == 'upload-db' and upload_contents is not None:
+        import base64
+        if ',' not in upload_contents:
+            return "Upload failed: Invalid file contents.", dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        content_type, content_string = upload_contents.split(',', 1)
+        try:
+            decoded = base64.b64decode(content_string)
+        except Exception as e:
+            return f"Upload failed: Decoding error: {str(e)}", dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
+        with open(db_path, 'wb') as f:
+            f.write(decoded)
+
+        months = get_available_months()
+        if not months:
+            return "Upload failed: No valid data in file.", dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+        available_months = months
+        month_to_index = {m: i for i, m in enumerate(available_months)}
+        index_to_month = {i: m for i, m in enumerate(available_months)}
+
+        min_val = 0
+        max_val = len(available_months) - 1
+        slider_val = [min_val, max_val]
+        marks = {i: m for i, m in enumerate(available_months)}
+
+        generate_map(available_months[0], available_months[0], default_map_path)
+        map_src = f"/assets/default_map.html?ts={int(datetime.now(timezone.utc).timestamp())}"
+        period_text = f"Showing: {available_months[0]} to {available_months[0]}"
+
+        upload_msg = f"Uploaded '{upload_filename}' successfully."
+        return upload_msg, marks, min_val, max_val, slider_val, map_src, period_text, loading_msg
+
+    elif trigger_id == 'submit-button' and submit_n_clicks > 0:
+        if not available_months:
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, "No data loaded.", dash.no_update
+
+        for file in os.listdir(assets_folder):
+            if file != "default_map.html":
+                os.remove(os.path.join(assets_folder, file))
+
+        start_month = index_to_month[slider_range[0]]
+        end_month = index_to_month[slider_range[1]]
+
+        generate_map(start_month, end_month, map_output_path)
+
+        timestamp = int(datetime.now(timezone.utc).timestamp())
+        map_src = f"/assets/temp_crime_map.html?ts={timestamp}"
+        period_text = f"Showing: {start_month} to {end_month}"
+
+        print(f"New map generated for period: {start_month} to {end_month}")
+
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, slider_range, map_src, period_text, ""
+
+    else:
+        slider_val = [0, len(available_months) - 1] if available_months else [0, 0]
+        map_src = f"/assets/default_map.html?ts={int(datetime.now(timezone.utc).timestamp())}" if os.path.exists(default_map_path) else ""
+        period_text = f"Showing: {available_months[0]} to {available_months[0]}" if available_months else "No data loaded."
+
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, slider_val, map_src, period_text, ""
+
+@app.callback(
+    Output("special-description", "style"),
+    Output("special-description", "children"),
+    Input("toggle-description", "n_clicks"),
+    prevent_initial_call="initial_duplicate"
+)
+def toggle_special_description(n_clicks):
+    if n_clicks % 2 == 1:
+        return {"marginTop": "10px", "whiteSpace": "pre-wrap", "display": "block"}, load_special_ops_text()
+    else:
+        return {"display": "none"}, ""
 
 if __name__ == "__main__":
+    if not os.path.exists(default_map_path) and available_months:
+        generate_map(available_months[0], available_months[0], default_map_path)
     app.run(debug=True, dev_tools_hot_reload=False)
+
+
+
+
+
+
+
+
+
 
 
