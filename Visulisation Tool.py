@@ -11,7 +11,7 @@ import os
 
 # Paths
 shapefile_path = "/Users/mateilaslau/Desktop/everything/UNI Documents/CBL/Mapping Files/London-wards-2018/London-wards-2018_ESRI/London_Ward_CityMerged.shp"
-db_path = "crime_data.db"
+db_path = "/Users/mateilaslau/Desktop/everything/UNI Documents/CBL/crime_data.db"
 output_path = os.path.join('assets', 'interactive_crime_map_2022_03.html')
 os.makedirs('assets', exist_ok=True)
 
@@ -45,6 +45,7 @@ def generate_map(db_path):
         SELECT crimeID, Month, Longitude, Latitude, Type, Outcome
         FROM crime
         WHERE Month = '2023-07' AND Longitude IS NOT NULL AND Latitude IS NOT NULL
+        AND Type = 'Burglary'
     """, conn)
     conn.close()
 
