@@ -203,7 +203,7 @@ def generate_map(start_month, end_month, output_path, include_lsoa=False):
                 }
             },
             name=ward_code,
-            tooltip=f"Ward: {ward_name}<br>Crimes: {count}",
+            tooltip=f"Ward: {ward_name}<br>Burglaries: {count}",
             style_function=lambda feature: {
                 'color': 'blue',
                 'weight': 2,
