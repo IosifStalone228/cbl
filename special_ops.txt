@@ -1,8 +1,8 @@
 Special Operations to Decrease Residential Burglary
 
-Special operations are intensive, pre-planned missions of police resources over and above a ward's monthly capability. Special operations are carried out each four months by each ward and are designed to prevent burglary patterns, catch suspects and prevent subsequent burglaries at homes, especially in neighborhoods that are high-risk based on the data analysis.
+Special operations are intensive, pre-planned missions of police resources over and above a ward's monthly capability. Special operations are carried out no more than once every four months by each ward and are designed to prevent burglary patterns, catch suspects, and prevent subsequent burglaries at homes, especially in neighborhoods that are high-risk based on the data analysis.
 
-A single special operation may consist of a combination of the following four distinct strategies:
+A single special operation may consist of one of the following four distinct strategies:
 
 1) Visible Police Patrol Operations, operations in the form of aggressive deployment of numerous uniformed officers to patrol a high-crime ward for an entire day. The primary goal is to maintain a high-level visible police presence that serves as a direct deterrent against possible offenders. Visibility by police has been shown to reduce crime level based on fear of being caught. These activities are especially effective during peak activity times of burglary risk, such as times of seasonal peaks or hot spot neighborhoods.
 
@@ -12,10 +12,7 @@ A single special operation may consist of a combination of the following four di
 
 4) Burglary Root Operations, these operations address the root social and economic causes of burglary. Police collaborate with housing departments in the local area, youth services, educational authorities, and social services to address vulnerable individuals and families. The focus is on prevention over the long term, addressing factors like disengagement of young people, drug abuse, unemployment, and poor housing. Intervening early and supplementing social services, these operations work towards preventing the circumstances causing burglary.
 
-Special operations should be targeted most effectively in wards with one or more of the following features:
-High seasonal spikes in frequency of burglary (increased incidents during the winter holidays).
-Rank consistently among the top burglary frequency over a longer time.
-Exhibit an abrupt increase in reported burglary within a short time period.
-A high number of socially and economically riskful areas.
+To decide which special operation should be executed, and when this should be, we propose to use the opinion of patrolling police officers.
+Each officer would at the last patrol of their week fill in a survey asking them whether to carry out a special operation in the ward they patrolled in in the upcoming week, and which one they would choose. In the case a majority is in favor of conducting a special operation, the most chosen special operation would be conducted in the next week. Police officers would make their choice based on their patrolling experience and insights from the dashboard of the past week. Since special operations are only carried out at most every four months, it is important for officers to also recognize monthly patterns, to anticipate on the upcoming four months.
 
-By employing the result of our predictive model and spatial analysis, we can choose the best time and location for each kind of special operation. With data-driven strategy, police resources are used optimally and ethically with the goal of realizing both short-term reductions in burglary and long-term enhancements in community safety.
+This way police resources are used optimally and ethically with a data-driven strategy, with the goal of realizing both short-term reductions in  residential burglary and long-term enhancements in community safety.
