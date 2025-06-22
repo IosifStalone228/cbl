@@ -1,1 +1,6 @@
-CBL github...
+Python 3.11
+
+Dashboard_V2.py
+
+pip install pandas folium fiona shapely pyproj rtree dash
+
