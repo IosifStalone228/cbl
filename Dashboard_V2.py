@@ -107,7 +107,7 @@ for wcode, wgeom in wards:
         if wgeom.intersects(lgeom) and (wgeom.intersection(lgeom).area / lgeom.area) > 0.3:
             feats.append({
                 "type":"Feature",
-                "geometry": lgeom._geo_interface_,
+                "geometry": lgeom.__geo_interface__,
                 "properties":{"LSOA21CD":lcode}
             })
     lsoa_by_ward[wcode] = feats
@@ -117,7 +117,7 @@ m = folium.Map([51.5074, -0.1278], zoom_start=10, tiles="CartoDB dark_matter")
 wards_geojson = {
     "type":"FeatureCollection",
     "features":[
-        {"type":"Feature","properties":{"ward":wcode},"geometry":wgeom._geo_interface_}
+        {"type":"Feature","properties":{"ward":wcode},"geometry":wgeom.__geo_interface__}
         for wcode, wgeom in wards
     ]
 }
@@ -319,12 +319,12 @@ m.get_root().html.add_child(folium.Element(js))
 m.save(output_path)
 
 # ─── DASH APP ───────────────────────────────────────────────────
-app = dash.Dash(_name_)
+app = dash.Dash(__name__)
 app.layout = html.Div([
     html.Iframe(
         src=f"/assets/{os.path.basename(output_path)}",
         style={"height":"100vh","width":"100%","border":"none"}
     )
 ])
-if _name_ == "_main_":
+if __name__ == "__main__":
     app.run(debug=False, dev_tools_ui=False, dev_tools_props_check=False)
