@@ -1,6 +1,6 @@
 DATABASE
 -------
-Database used for tool run and model run has to be downloaded from here:
+Database used for model run has to be downloaded from here:
 https://drive.google.com/file/d/1qNIcBdtWHjktsOt2hhGf-rp0obE7d3jp/view?usp=sharing
 -------
 
@@ -14,13 +14,13 @@ Run Dashboard_V2.py: python Dashboard_V2.py
 
 MODEL
 -----
-To train the model and apply it for the tool you have too:
+To train the model and apply it for the tool you have to:
 
 1 . 
 train_burglary_classifier_with_6plus_regression(db_path='crime_data.db', model_path='models/')
-Where models is folder created in the code repository and crime_data.db is a dataset that I sent to you earlier
+Where models is folder created in the code repository and crime_data.db is a dataset that can be found here
  
-You should get folder models with those files inside
+You should get folder models with files inside
  
 Also you get model performnce metrics.
 Most important one for classification is accuracy and for regression - RMSE
