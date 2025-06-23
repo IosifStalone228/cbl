@@ -16,7 +16,10 @@ MODEL
 -----
 To train the model and apply it for the tool you have to:
 
-1 . 
+1.
+Open Model_creation.ipynb
+
+2. 
 train_burglary_classifier_with_6plus_regression(db_path='crime_data.db', model_path='models/')
 Where models is a folder created in the code repository and crime_data.db the database
  
@@ -24,7 +27,7 @@ You should get folder models with files inside
  
 Also you get model performnce metrics.
 Most important one for classification is accuracy and for regression - RMSE
-2. 
+3. 
 predict_burglary_for_month(target_month, db_path='crime_data.db', model_path='models/')
 Where you specify target_month in the following format: "2025-03"
 Also you have to assign result to some variable, so you will be able to use dataset further.
@@ -32,11 +35,11 @@ Model can also predict data recursively, however reliability will decrease, as f
 For further months(not next from the current date) you should addd notification that they are not highly reliable.
 
 In the resulting table LSOA_code is already synchronized with WD24CD through geospatial data and predicted burglaries per LSOA for a certain month.
-3. 
+4. 
 get_crime_coordinates_from_db(db_path='crime_data.db')
 
 You assign result of this to a certain variable, will return you dataset with latitudes longitudes for future police officer LSOA centroids predictions
-4. 
+5. 
 allocate_police_hours_stepwise_reduction_with_coords(df, crime_df, total_hours_per_ward=800, patrol_block=2, step_percent=0.10, reduction_per_step=0.03, max_steps=5)
 df – dataframe from step 2
 crime_df  - initial dataset from which we extract latitude and longitude data
