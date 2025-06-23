@@ -178,7 +178,7 @@ window.onload = function() {{
       allocAllLayer = L.layerGroup();
       Object.values(allocByWard).flat().forEach(p=>{{
         const marker = L.circleMarker([p.lat,p.lon],{{radius:5,color:'blue',fillOpacity:0.6}}).addTo(allocAllLayer);
-        marker.bindTooltip(A:${{p.hours}} hrs, R:${{p.reinf}} hrs, {{direction:'top',offset:[0,-2],className:'alloc-tooltip'}});
+        marker.bindTooltip(`A:${{p.hours}} hrs, R:${{p.reinf}} hrs`, {{direction:'top',offset:[0,-2],className:'alloc-tooltip'}});
         marker.on('mouseover',()=>marker.openTooltip());
         marker.on('mouseout',()=>marker.closeTooltip());
       }});
@@ -265,7 +265,7 @@ window.onload = function() {{
     pts.forEach(p=>{{
       if(mode==='alloc') {{
         const marker=L.circleMarker([p.lat,p.lon],{{radius:5,color:'blue',fillOpacity:0.6}}).addTo(grp);
-        marker.bindTooltip(A:${{p.hours}} hrs, R:${{p.reinf}} hrs,{{direction:'top',offset:[0,-2],className:'alloc-tooltip'}});
+        marker.bindTooltip(`A:${{p.hours}} hrs, R:${{p.reinf}} hrs`,{{direction:'top',offset:[0,-2],className:'alloc-tooltip'}});
         marker.on('mouseover',()=>marker.openTooltip());
         marker.on('mouseout',()=>marker.closeTooltip());
       }} else {{
