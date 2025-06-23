@@ -8,8 +8,38 @@ Run Dashboard_V2.py
 
 MODEL
 -----
-Burglary predictions:
+To use function written by for prediction you have to:
 
-Police alocation:
+1 . 
+train_burglary_classifier_with_6plus_regression(db_path='crime_data.db', model_path='models/')
+Where models is folder created in the code repository and crime_data.db is a dataset that I sent to you earlier
+ 
+You should get folder models with those files inside
+ 
+Also you get model performnce metrics.
+Most important one for classification is accuracy and for regression - RMSE
+2. 
+predict_burglary_for_month(target_month, db_path='crime_data.db', model_path='models/')
+Where you specify target_month in the following format: "2025-03"
+Also you have to assign result to some variable, so you will be able to use dataset further.
+Model can also predict data recursively, however reliability will decrease, as far as assumptions will be based on assumptions, however there is basically no limitation for prediction dates.
+For further months(not next from the current date) you should addd notification that they are not highly reliable.
 
+In the resulting table LSOA_code is already synchronized with WD24CD through geospatial data and predicted burglaries per LSOA for a certain month.
+3. 
+get_crime_coordinates_from_db(db_path='crime_data.db')
+
+You assign result of this to a certain variable, will return you dataset with latitudes longitudes for future police officer LSOA centroids predictions
+4. 
+allocate_police_hours_stepwise_reduction_with_coords(df, crime_df, total_hours_per_ward=800, patrol_block=2, step_percent=0.10, reduction_per_step=0.03, max_steps=5)
+df – dataframe from step 2
+crime_df  - initial dataset from which we extract latitude and longitude data
+
+total_hours_per_ward – weekly police officer hours per ward
+patrol_block – police should patrol together, to make it more efficient and safer
+step_percent – police change that results in 3% decrease in crimes
+reduction_per_step – 3 % reduction coefficient
+max_steps - 5 number of iterations that ILP performs before providing final result
+
+Where Latitude and Longitude per LSOA is centroid for police allocation for each LSOA(the closer to center of  it area is the higher police attention is required)
 -----
