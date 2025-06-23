@@ -1,6 +1,15 @@
-Python 3.11
+DASHBOARD
+-----
+Dashboard:
+Open Dashboard_V2.py in Python 3.11
+Install required packages: pip install pandas folium fiona shapely pyproj rtree dash
+Run Dashboard_V2.py
+-----
 
-Dashboard_V2.py
+MODEL
+-----
+Burglary predictions:
 
-pip install pandas folium fiona shapely pyproj rtree dash
+Police alocation:
 
+-----
